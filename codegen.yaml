@@ -1,0 +1,13 @@
+schema: 'https://api-mumbai.lens.dev'  # Must use the testnet schema
+# schema: 'https://api.lens.dev'  # The official schema does not work
+documents: './graphql/lens/*.graphql'
+generates:
+  ./graphql/lens/generated.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
+      - fragment-matcher
+    config:
+      fetcher: fetch
+      dedupeFragments: true

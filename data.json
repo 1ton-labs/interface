@@ -1,0 +1,77 @@
+[
+  {
+    "state": 1,
+    "platform": "twitter",
+    "id": "16477634",
+    "name": "Pavel Durov",
+    "image": "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png",
+    "attributes": [
+      {
+        "trait_type": "Followers",
+        "value": "1.3M"
+      },
+      {
+        "trait_type": "Tweets",
+        "value": "2,028"
+      },
+      {
+        "trait_type": "Last Update",
+        "value": "Dec 1, 2022"
+      }
+    ],
+    "description": "description",
+    "external_url": "external_url",
+    "marketplace": "marketplace",
+    "display_name": "display_name"
+  },
+  {
+    "state": 0,
+    "platform": "instagram",
+    "id": "44196397",
+    "name": "Elon Musk",
+    "image": "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png",
+    "attributes": [
+      {
+        "trait_type": "Followers",
+        "value": "128.2M"
+      },
+      {
+        "trait_type": "Tweets",
+        "value": "22.6K"
+      },
+      {
+        "trait_type": "Last Update",
+        "value": "Feb 7, 2023"
+      }
+    ],
+    "description": "description",
+    "external_url": "external_url",
+    "marketplace": "marketplace",
+    "display_name": "display_name"
+  },
+  {
+    "state": 2,
+    "platform": "tiktok",
+    "id": "",
+    "name": "CZ",
+    "image": "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png",
+    "attributes": [
+      {
+        "trait_type": "Followers",
+        "value": "8.1M"
+      },
+      {
+        "trait_type": "Tweets",
+        "value": "6,895"
+      },
+      {
+        "trait_type": "Last Update",
+        "value": "Feb 7, 2023"
+      }
+    ],
+    "description": "description",
+    "external_url": "external_url",
+    "marketplace": "marketplace",
+    "display_name": "display_name"
+  }
+]
