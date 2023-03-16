@@ -2,9 +2,8 @@ import { FC, useState } from "react";
 
 import { Spinner } from "@chakra-ui/react";
 import { PrimaryButton } from "@/components/Buttons";
-import { LENDING_PROTOCOL_ADDRESS, TOKEN_NAME } from "@/constants";
-import { EthTokenReader } from "@/core/EthTokenReader";
-import { isNumber, formatTonOrETH, numberWithCommas, shortStr } from "@/core/utils";
+import { TOKEN_NAME } from "@/constants";
+import { formatCoin, numberWithCommas, shortStr } from "@/core/utils";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Loan } from "@/types";
 
@@ -17,8 +16,8 @@ type LoanPanelProps = {
   customDate: Date;
 };
 
-export const LoanPanel: FC<LoanPanelProps> = ({ loan, tokenId, isOwner, isBorrower, isLender, customDate }) => {
-  const { connected, checkAllowanceLending, checkBalance, loanManager, tokenManager, update } = useWeb3();
+export const LoanPanel: FC<LoanPanelProps> = ({ loan, tokenId, isBorrower, isLender, customDate }) => {
+  const { connected, loanManager } = useWeb3();
   const [loading, setLoading] = useState<boolean>(false);
   const dueDate = new Date((loan.start_time + loan.duration) * 1000);
   const trStyle = "flex justify-between font-medium text-sm font-inter border-b border-secondary-normal"
@@ -34,11 +33,11 @@ export const LoanPanel: FC<LoanPanelProps> = ({ loan, tokenId, isOwner, isBorrow
             </tr>
             <tr className={trStyle}>
               <td>Principal</td>
-              <td>{numberWithCommas(formatTonOrETH(loan.principal))} {TOKEN_NAME}</td>
+              <td>{numberWithCommas(formatCoin(loan.principal))} {TOKEN_NAME}</td>
             </tr>
             <tr className={trStyle}>
               <td>Pay Back</td>
-              <td>{numberWithCommas(formatTonOrETH(loan.repayment))} {TOKEN_NAME}</td>
+              <td>{numberWithCommas(formatCoin(loan.repayment))} {TOKEN_NAME}</td>
             </tr>
             <tr className={trStyle}>
               <td>Start Date</td>
@@ -72,64 +71,22 @@ export const LoanPanel: FC<LoanPanelProps> = ({ loan, tokenId, isOwner, isBorrow
         {!loading && isBorrower &&
           (
             <div className="text-center py-2">
-              {(isNumber(loan.repayment) && checkAllowanceLending(loan.repayment) ? 
-                (isNumber(loan.repayment) && checkBalance(loan.repayment)) ? (
-                  <PrimaryButton disabled={!connected || customDate > dueDate}
-                    onClick={async () => {
-                      // await firebase.database().ref(`/loans/${tokenId}`).remove();
-                      // location.reload();
-                      if (connected) {
-                        setLoading(true);
-                        await loanManager.repay({loanId: loan.loan_id, tokenId })
-                        setLoading(false);
-                        location.reload();
-                      } else {
-                        alert("Please connect to your wallet.");
-                      }
+              {(
+                <PrimaryButton disabled={!connected || customDate > dueDate}
+                  onClick={async () => {
+                    // await firebase.database().ref(`/loans/${tokenId}`).remove();
+                    // location.reload();
+                    if (connected) {
+                      setLoading(true);
+                      await loanManager.repay({ loanId: loan.loan_id, tokenId })
+                      setLoading(false);
+                      location.reload();
+                    } else {
+                      alert("Please connect to your wallet.");
                     }
                   }
-                  >Repay</PrimaryButton>
-                ) : (
-                  <PrimaryButton
-                    disabled={!connected || customDate > dueDate}
-                    onClick={async () => {
-                      if (connected) {
-                        setLoading(true);
-                        try {
-                          const tokenReader = new EthTokenReader();
-                          const allowance = await tokenReader.allowanceWBNB(loan.borrower, LENDING_PROTOCOL_ADDRESS);
-                          const balance = await tokenReader.balanceWBNB(loan.borrower);
-                          const delta = allowance.sub(balance);
-                          await tokenManager.wrapToken(delta.toString());
-                          update();
-                        } finally {
-                          setLoading(false);
-                        }
-                      } else {
-                        alert("Please connect to your wallet.");
-                      }
-                    }}
-                  >
-                    {`Wrap ${TOKEN_NAME}`}
-                  </PrimaryButton>
-                ) : (
-                  <PrimaryButton
-                    disabled={!connected || customDate > dueDate}
-                    onClick={async () => {
-                      if (connected) {
-                        setLoading(true);
-                        try {
-                          await tokenManager.approveToken(LENDING_PROTOCOL_ADDRESS, loan.repayment);
-                          update();
-                        } finally {
-                          setLoading(false);
-                        }
-                      } else {
-                        alert("Please connect to your wallet.");
-                      }
-                    }}
-                  >Approve WBNB</PrimaryButton>
-                )
+                  }
+                >Repay</PrimaryButton>
               )}
             </div>
           )
@@ -143,7 +100,7 @@ export const LoanPanel: FC<LoanPanelProps> = ({ loan, tokenId, isOwner, isBorrow
                 // await firebase.database().ref(`/loans/${tokenId}`).remove();
                 // location.reload();
                 if (connected) {
-                  await loanManager.claim({loanId: loan.loan_id, tokenId })
+                  await loanManager.claim({ loanId: loan.loan_id, tokenId })
                   location.reload();
                 } else {
                   alert("Please connect to your wallet.");

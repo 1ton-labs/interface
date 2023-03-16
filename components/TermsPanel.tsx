@@ -3,10 +3,9 @@ import firebase from "firebase";
 import { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from "react";
 import { PrimaryButton } from "./Buttons";
 import { LENDING_PROTOCOL_ADDRESS, TOKEN_NAME } from "@/constants";
-import { calcInterest, calcRepayment, classNames, isNumber, numberWithCommas } from "@/core/utils";
+import { calcInterest, calcRepayment, classNames, isNumber, numberWithCommas, parseCoin } from "@/core/utils";
 import { Offer, Terms } from "@/types";
 import { useWeb3 } from "@/hooks/useWeb3";
-import { ethers } from "ethers";
 import { Spinner } from "@chakra-ui/react";
 
 type OfferForm = {
@@ -21,7 +20,7 @@ type Panel1Props = {
   setForm: Dispatch<SetStateAction<OfferForm>>;
   tokenId: string;
   isOwner: boolean;
-  desiredTerms: Terms|null;
+  desiredTerms: Terms | null;
 };
 
 const Panel1: FC<Panel1Props> = ({ setSelectedIndex, setForm, tokenId, isOwner, desiredTerms }) => {
@@ -255,7 +254,7 @@ const Panel2: FC<Panel2Props> = ({ form, setForm, tokenId, isOwner }) => {
         {!loading && isOwner && (
           <PrimaryButton
             disabled={!connected || !validateInputs()}
-            onClick={async () =>{
+            onClick={async () => {
               if (tokenId === undefined || tokenId === "") {
                 alert("Token address does not exist.");
               } else if (validateInputs()) {
@@ -266,67 +265,67 @@ const Panel2: FC<Panel2Props> = ({ form, setForm, tokenId, isOwner }) => {
             }}
           >Confirm</PrimaryButton>
         )}
-        {!loading && !isOwner && (isNumber(form.principal) && !checkAllowanceLending(ethers.utils.parseEther(form.principal).toString()) ? (
-            <PrimaryButton
-              disabled={!connected || !validateInputs()}
-              onClick={async () =>{
-                if (validateInputs()) {
-                  if (connected) {
-                    setLoading(true);
-                    try {
-                      await tokenManager.approveToken(LENDING_PROTOCOL_ADDRESS, ethers.utils.parseEther(form.principal).toString());
-                      update();
-                    } finally {
-                      setLoading(false);
-                    }
-                  } else {
-                    alert("Please connect to your wallet.");
+        {!loading && !isOwner && (isNumber(form.principal) && !checkAllowanceLending(parseCoin(form.principal).toString()) ? (
+          <PrimaryButton
+            disabled={!connected || !validateInputs()}
+            onClick={async () => {
+              if (validateInputs()) {
+                if (connected) {
+                  setLoading(true);
+                  try {
+                    await tokenManager.approveToken(LENDING_PROTOCOL_ADDRESS, parseCoin(form.principal).toString());
+                    update();
+                  } finally {
+                    setLoading(false);
                   }
+                } else {
+                  alert("Please connect to your wallet.");
                 }
-              }}
-            >Approve WBNB</PrimaryButton>
-          ) : (isNumber(form.principal) && !checkBalance(ethers.utils.parseEther(form.principal).toString())) ? (
-            <PrimaryButton
-              disabled={!connected || !validateInputs()}
-              onClick={async () =>{
-                if (validateInputs()) {
-                  if (connected) {
-                    setLoading(true);
-                    try {
-                      await tokenManager.wrapToken(ethers.utils.parseEther(form.principal).toString());
-                      update();
-                    } finally {
-                      setLoading(false);
-                    }
-                  } else {
-                    alert("Please connect to your wallet.");
+              }
+            }}
+          >Approve WBNB</PrimaryButton>
+        ) : (isNumber(form.principal) && !checkBalance(parseCoin(form.principal).toString())) ? (
+          <PrimaryButton
+            disabled={!connected || !validateInputs()}
+            onClick={async () => {
+              if (validateInputs()) {
+                if (connected) {
+                  setLoading(true);
+                  try {
+                    await tokenManager.wrapToken(parseCoin(form.principal).toString());
+                    update();
+                  } finally {
+                    setLoading(false);
                   }
+                } else {
+                  alert("Please connect to your wallet.");
                 }
-              }}
-            >{`Wrap ${form.principal} ${TOKEN_NAME}`}</PrimaryButton>
-          ) : (
-            <PrimaryButton
-              disabled={!connected || !validateInputs()}
-              onClick={async () =>{
-                if (tokenId === undefined || tokenId === "") {
-                  alert("Token address does not exist.");
-                } else if (validateInputs()) {
-                  if (connected) {
-                    setLoading(true);
-                    try {
-                      const offer = createOffer(tokenId, address);
-                      await loanManager.signOffer(offer);
-                    } finally {
-                      setLoading(false);
-                      location.reload();
-                    }
-                  } else {
-                    alert("Please connect to your wallet.");
+              }
+            }}
+          >{`Wrap ${form.principal} ${TOKEN_NAME}`}</PrimaryButton>
+        ) : (
+          <PrimaryButton
+            disabled={!connected || !validateInputs()}
+            onClick={async () => {
+              if (tokenId === undefined || tokenId === "") {
+                alert("Token address does not exist.");
+              } else if (validateInputs()) {
+                if (connected) {
+                  setLoading(true);
+                  try {
+                    const offer = createOffer(tokenId, address);
+                    await loanManager.signOffer(offer);
+                  } finally {
+                    setLoading(false);
+                    location.reload();
                   }
+                } else {
+                  alert("Please connect to your wallet.");
                 }
-              }}
-            >Sign Offer</PrimaryButton>
-          )
+              }
+            }}
+          >Sign Offer</PrimaryButton>
+        )
         )}
       </div>
     </div>
@@ -336,7 +335,7 @@ const Panel2: FC<Panel2Props> = ({ form, setForm, tokenId, isOwner }) => {
 type TermsPanelProps = {
   tokenId: string;
   isOwnerOrBorrower: boolean;
-  desiredTerms: Terms|null;
+  desiredTerms: Terms | null;
 };
 
 const TermsPanel: FC<TermsPanelProps> = ({ tokenId, isOwnerOrBorrower, desiredTerms }) => {

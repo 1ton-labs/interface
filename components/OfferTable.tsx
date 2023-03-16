@@ -3,6 +3,7 @@ import { useWeb3 } from "@/hooks/useWeb3";
 import { Offer } from "@/types";
 import { FC } from "react";
 import { TableButton } from "./Buttons";
+import { Tooltip } from '@chakra-ui/react'
 
 type OfferTableProps = {
   offers: Offer[];
@@ -20,8 +21,8 @@ const OfferTable: FC<OfferTableProps> = ({ offers, isOwner, tokenId }) => {
           <th scope="col" className={`${tableIyemStyle} rounded-tl-lg`}>Principal</th>
           <th scope="col" className={tableIyemStyle}>Duration</th>
           <th scope="col" className={tableIyemStyle}>Payoff</th>
-          <th scope="col" className={tableIyemStyle}>APR</th>
-          <th scope="col" className={tableIyemStyle}>Signer</th>
+          <th scope="col" className={`w-[80px] ${tableIyemStyle}`}>APR</th>
+          <th scope="col" className={`w-[132px] ${tableIyemStyle}`}>Signer</th>
           <th scope="col" className={tableIyemStyle}>Expires</th>
           <th scope="col" className={`${tableIyemStyle} rounded-tr-lg`}>Action</th>
         </tr>
@@ -34,15 +35,17 @@ const OfferTable: FC<OfferTableProps> = ({ offers, isOwner, tokenId }) => {
                 <td className={tableIyemStyle}>{numberWithCommas(offer.principal)}</td>
                 <td className={tableIyemStyle}>{offer.duration} Days</td>
                 <td className={tableIyemStyle}>{numberWithCommas(offer.repayment)}</td>
-                <td className={tableIyemStyle}>{offer.interest}%</td>
+                <Tooltip hasArrow label={`${offer.interest}%`} bg='gray.300' color='black'>
+                  <td className={`w-[80px] ${tableIyemStyle}`}>{offer.interest.substring(0, 3) + "..."}%</td>
+                </Tooltip>
                 <td className={tableIyemStyle}>{shortStr(offer.signer)}</td>
-                <td className={tableIyemStyle}>{offer.expires}</td>
+                <td className={`w-[132px] ${tableIyemStyle}`}>{offer.expires}</td>
                 <td className={tableIyemStyle}>
                   {isOwner ? (
                     <TableButton onClick={async () => {
                       try {
                         if (connected) {
-                          await loanManager.startLoan({ loanId: '', tokenId }, offer)
+                          await loanManager.startLoan({ loanId: '', tokenId }, offer);
                           location.reload();
                         } else {
                           alert("Please connect to your wallet.");
@@ -50,7 +53,7 @@ const OfferTable: FC<OfferTableProps> = ({ offers, isOwner, tokenId }) => {
                       } catch (e) {
                         console.error(e);
                         alert(e);
-                      } 
+                      }
                     }}>
                       Accept
                     </TableButton>
@@ -77,7 +80,7 @@ const OfferTable: FC<OfferTableProps> = ({ offers, isOwner, tokenId }) => {
             </tr>
           )
         }
-        
+
       </tbody>
     </table>
   );

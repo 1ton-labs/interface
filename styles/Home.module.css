@@ -103,13 +103,6 @@
   z-index: -1;
 }
 
-.centerSprout::after {
-  background: var(--primary-glow-sprout);
-  width: 240px;
-  height: 180px;
-  z-index: -1;
-}
-
 .center::before,
 .center::after {
   content: '';

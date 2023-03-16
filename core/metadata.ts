@@ -145,20 +145,6 @@ export async function generateMetadata(
       throw Error(`Unsupported platform: ${platform}. Only BintanGO, CyberConnect and Lens work.`);
   }
 
-  if (THEME === "sprout" && address && address !== "") {
-    // Get CyberConnect primary profile
-    const cyberConnectProfile = await getCyberConnectProfile(address);
-    if (cyberConnectProfile) {
-      profiles.push(cyberConnectProfile)
-    }
-
-    // Get Lens Protocol primary profile
-    const lensProtocolProfile = await getLensProtocolProfile(address);
-    if (lensProtocolProfile) {
-      profiles.push(lensProtocolProfile);
-    }
-  }
-
   attributes.push({
     trait_type: "Name",
     value: twitterProfile.name,

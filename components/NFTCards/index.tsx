@@ -11,7 +11,7 @@ type NFTCardsProps = {
 
 const NFTCards: FC<NFTCardsProps> = ({ items, baseUrl }) => {
   return (
-    <div className={`grid ${THEME === "1ton" ? "grid-cols-5 gap-5" : "grid-cols-3 gap-8"}`}>
+    <div className={`grid max-w-6xl grid-cols-5 gap-5`}>
       {
         items.map((item) => (
           <Card

@@ -3,9 +3,10 @@ import { TonClient4 } from "ton";
 import { Address, Sender } from "ton-core";
 
 import { LENDING_PROTOCOL_ADDRESS, MIN_GAS_FEE } from "@/constants";
-import { Lending } from "@/contracts/1ton_Lending";
+
+import { Lending } from "@/contracts/1ton/Lending";
 import firebaseHelper from "@/firebaseHelper";
-import { Bond, Loan, Offer, TactContract, Terms } from "@/types";
+import { Bond, FuncContract, Loan, Offer, Terms } from "@/types";
 import { ILoanManager } from "./ILoanManager";
 import { ILoanReader } from "./ILoanReader";
 import { TonLoanReader } from "./TonLoanReader";
@@ -14,12 +15,12 @@ import { safeNano } from "./utils";
 export class TonLoanManager implements ILoanManager {
 
   private client4: TonClient4;
-  private lending: TactContract<Lending>;
+  private lending: FuncContract<Lending>;
   private loanReader: ILoanReader;
 
   constructor(private readonly sender: Sender) {
     this.client4 = new TonClient4({ endpoint: "https://sandbox-v4.tonhubapi.com" });
-    this.lending = this.client4.open(Lending.fromAddress(Address.parse(LENDING_PROTOCOL_ADDRESS)));
+    this.lending = this.client4.open(new Lending(Address.parse(LENDING_PROTOCOL_ADDRESS)));
     this.loanReader = new TonLoanReader();
 
     firebaseHelper.initFirebase();
@@ -27,13 +28,9 @@ export class TonLoanManager implements ILoanManager {
 
   async signOffer(offer: Offer): Promise<void> {
     if (this.sender.address) {
-      await this.lending.send(
+      await this.lending.sendDeposit(
         this.sender,
-        { value: safeNano(offer.principal) + MIN_GAS_FEE },
-        {
-          $$type: "Deposit",
-          amount: safeNano(offer.principal),
-        },
+        safeNano(offer.principal)
       );
 
       const terms: Terms = {
@@ -48,14 +45,9 @@ export class TonLoanManager implements ILoanManager {
 
   async cancelOffer(offer: Offer): Promise<void> {
     if (this.sender.address) {
-      await this.lending.send(
+      await this.lending.sendWithdraw(
         this.sender,
-        { value: MIN_GAS_FEE },
-        {
-          $$type: "Withdraw",
-          amount: safeNano(offer.principal),
-          receiver: this.sender.address,
-        },
+        safeNano(offer.principal)
       );
 
       await firebase.database().ref(`/offers/${offer.tokenId}/${offer.signer}`).remove();
@@ -63,18 +55,16 @@ export class TonLoanManager implements ILoanManager {
   }
 
   async startLoan(bond: Bond, offer: Offer): Promise<boolean> {
-    location.reload();
     let success = false;
-    await this.lending.send(
+    await this.lending.sendStartLoan(
       this.sender,
-      { value: MIN_GAS_FEE },
+      MIN_GAS_FEE,
       {
-        $$type: "StartLoan",
         investor: Address.parse(offer.signer),
         item: Address.parse(bond.tokenId),
         amount: safeNano(offer.principal),
         repay_amount: safeNano(offer.repayment),
-        duration: BigInt(parseInt(offer.duration) * 86400),
+        duration: BigInt(Math.floor(parseFloat(offer.duration) * 86400)),
       }
     );
 
@@ -82,7 +72,7 @@ export class TonLoanManager implements ILoanManager {
       loan_id: "",  // TODO: 
       principal: safeNano(offer.principal).toString(),
       repayment: safeNano(offer.repayment).toString(),
-      duration: parseInt(offer.duration) * 86400,
+      duration: Math.floor(parseFloat(offer.duration) * 86400),
       borrower: this.sender.address?.toString() ?? "",
       lender: offer.signer,
       start_time: Math.floor(Date.now() / 1000),
@@ -98,13 +88,10 @@ export class TonLoanManager implements ILoanManager {
     let success = false
     const loan = await this.loanReader.getLoanByBond(bond);
     if (loan) {
-      await this.lending.send(
+      await this.lending.sendRepay(
         this.sender,
-        { value: BigInt(loan.repayment) + MIN_GAS_FEE },
-        {
-          $$type: "Repay",
-          item: Address.parse(bond.tokenId),
-        },
+        Address.parse(bond.tokenId),
+        BigInt(parseInt(loan.repayment)),
       );
       success = true;
     }
@@ -113,13 +100,9 @@ export class TonLoanManager implements ILoanManager {
 
   async claim(bond: Bond): Promise<boolean> {
     let success = false;
-    await this.lending.send(
+    await this.lending.sendClaim(
       this.sender,
-      { value: MIN_GAS_FEE },
-      {
-        $$type: "Claim",
-        item: Address.parse(bond.tokenId),
-      },
+      Address.parse(bond.tokenId)
     );
     success = true;
     return success

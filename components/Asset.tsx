@@ -35,11 +35,11 @@ export const AssetContent: FC<AssetProps> = ({
     }
   }
 
-  const displayUser = connected ? shortStr(prettyAddress) : "Guest"; // TODO: prettyAddress
+  const displayUser = connected ? prettyAddress : "Guest"; // TODO: prettyAddress
   const displayOwner = item.owner_address ? shortStr(item.owner_address) : ""; // TODO: prettyAddress
 
   return (
-    <div className="flex flex-col max-w-5xl">
+    <div className="flex flex-col max-w-6xl">
       <div className="mt-10 mb-2 px-10">
         <div className="text-2xl font-inter">Hello, {displayUser} 😁</div>
         {item.owner_address === undefined || item.owner_address === "" ? (
@@ -48,9 +48,7 @@ export const AssetContent: FC<AssetProps> = ({
           </div>
         ) : (
           <div className="text-gray-500">
-            {displayUser === displayOwner
-              ? "You own this item."
-              : "Holder: " + displayOwner}
+            {isOwner ? "You own this item." : "Holder: " + displayOwner}
           </div>
         )}
       </div>
@@ -94,7 +92,6 @@ export const AssetContent: FC<AssetProps> = ({
               <div className="w-80 rounded-3xl px-4 flex-1 shadow-purpleShadow">
                 <BondPanel
                   item={item}
-                  isOwnerOrBorrower={isOwner || isBorrower}
                   duration={item.duration}
                 />
               </div>

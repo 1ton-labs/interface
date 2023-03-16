@@ -7,6 +7,9 @@ module.exports = {
     "bg-listed",
     "bg-not-listed",
     "bg-gray-500",
+    "bg-accent",
+    "h-[40px]",
+    "w-auto"
   ],
   theme: {
     extend: {

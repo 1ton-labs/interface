@@ -2,7 +2,6 @@ import { PrimaryButton } from "@/components/Buttons";
 import { BintanGOIcon, CyberConnectIcon, InstagramIcon, LensProtocolIcon, TelegramIcon, TiktokIcon, TwitterIcon, UnknownIcon, YouTubeIcon } from "@/components/IconSvg";
 import Layout from "@/components/Layout";
 import SliderBar from "@/components/SliderBar";
-import { THEME } from "@/constants";
 import contents from "@/contents";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Disclosure } from "@headlessui/react";
@@ -10,7 +9,7 @@ import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { NextPage } from "next";
 import { Dispatch, FC, ReactNode, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import DropdownBox from "@/components/DropdownBox";
-import { Textarea, Input } from '@chakra-ui/react';
+import { Textarea, Input, Spinner } from '@chakra-ui/react';
 import { generateMetadataWithProfiles, getCyberConnectProfile, getLensProtocolProfile, getTwitterProfile } from "@/core/metadata";
 import PreviewTable from "@/components/PreviewTable";
 import { Metadata, Profile } from "@/types";
@@ -54,24 +53,12 @@ export const platformConfig = {
   }
 };
 
-const BscPlatformOptions = [
-  // platformConfig.TWITTER,
-  // platformConfig.TIKTOK,
-  // platformConfig.YOUTUBE,
-  // platformConfig.INSTAGRAM,
-  // platformConfig.TELEGRAM
-  platformConfig.BINTANGO,
-  platformConfig.CYBERCONNECT,
-  platformConfig.LENS,
-];
-
 const TonPlatformOptions = [
   platformConfig.BINTANGO,
 ];
 
-const PlatformOptions = THEME === "1ton" ? TonPlatformOptions : BscPlatformOptions;
+const PlatformOptions = TonPlatformOptions;
 
-const DurationOptions = [1, 3, 6, 12, 10, 60];
 const DurationOptionsForDemo = [2592000, 7776000, 15552000, 31104000, 10, 60]
 
 type AgreementProps = {
@@ -286,15 +273,17 @@ type FormItemProps = {
   children: ReactNode;
   title: string;
   step: number;
+  loading?: boolean;
 }
 
-const FormItem: FC<FormItemProps> = ({ title, step, children }) => (
+const FormItem: FC<FormItemProps> = ({ title, step, children, loading }) => (
   <div className="w-full font-inter">
     <div className="mb-3 flex items-center">
       <span className="w-7 h-7 flex justify-center items-center bg-secondary-light rounded-full mr-4">
         {step}
       </span>
       <div className="my-1 font-medium">{title}</div>
+      {loading && <Spinner className="ml-4" size="sm" />}
     </div>
     <div className="px-11">{children}</div>
   </div>
@@ -309,12 +298,30 @@ const TreasuryMint: NextPage = () => {
 
   const [read, setRead] = useState<boolean>(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [bioLoading, setBioLoading] = useState<boolean>(false);
+  const [planLoading, setPlanLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (profiles[0]) {
+      // Generate bio and business plan
+      setBioLoading(true);
+      fetch(`/api/text-generator?type=bio&name=${profiles[0].name}`)
+        .then((res) => res.json())
+        .then((data) => setBio(data.text))
+        .finally(() => setBioLoading(false));
+      setPlanLoading(true);
+      fetch(`/api/text-generator?type=plan&name=${profiles[0].name}`)
+        .then((res) => res.json())
+        .then((data) => setPlan(data.text))
+        .finally(() => setPlanLoading(false));
+    }
+  }, [profiles]);
 
   useEffect(() => {
     // Re-generate metadata with new profiles
     generateMetadataWithProfiles(profiles, bio, plan, duration, percentage)
       .then((metadata) => setMetadata(metadata));
-  }, [profiles]);
+  }, [profiles, bio, plan]);
 
   return (
     <Layout
@@ -351,23 +358,27 @@ const TreasuryMint: NextPage = () => {
             <FormItem
               title="Your bio (in 150 words)"
               step={2}
+              loading={bioLoading}
             >
               <Textarea
-                placeholder=''
+                minHeight={200}
+                placeholder={planLoading ? "(loading for demo purpose...)" : ""}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                focusBorderColor='gray.400'
+                focusBorderColor="gray.400"
               />
             </FormItem>
             <FormItem
               title="Your business plan (in 150 words)"
               step={3}
+              loading={planLoading}
             >
               <Textarea
-                placeholder=''
+                minHeight={200}
+                placeholder={planLoading ? "(loading for demo purpose...)" : ""}
                 value={plan}
                 onChange={(e) => setPlan(e.target.value)}
-                focusBorderColor='gray.400'
+                focusBorderColor="gray.400"
               />
             </FormItem>
             <FormItem
@@ -410,8 +421,18 @@ const TreasuryMint: NextPage = () => {
             isConnect={profiles.length > 0}
           />
         </div>
-
       </div>
+
+      <img
+        src={contents.landing.holaA.image}
+        alt={contents.landing.holaA.description}
+        className="w-[800px] absolute -right-[400px] top-32 z-[-10]"
+      />
+      <img
+        src={contents.landing.holaB.image}
+        alt={contents.landing.holaB.description}
+        className="w-[600px] absolute top-10 -left-[300px] z-[-10]"
+      />
     </Layout>
   )
 }

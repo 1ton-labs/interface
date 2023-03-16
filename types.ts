@@ -205,4 +205,4 @@ export type CCAddress = {
   wallet: CCWallet;
 }
 
-export type TactContract<T> = { [P in keyof T]: P extends `get${string}` | `send${string}` ? T[P] extends (x: ContractProvider, ...args: infer P_1) => infer R ? (...args: P_1) => R : never : T[P]; }
+export type FuncContract<T> = { [P in keyof T]: P extends `get${string}` | `send${string}` ? T[P] extends (x: ContractProvider, ...args: infer P_1) => infer R ? (...args: P_1) => R : never : T[P]; }

@@ -1,4 +1,4 @@
-import { getTokenId, getTokenIdFromRecord, isNumber, stateColor, timeConverHandler } from "@/core/utils";
+import { getTokenId, getTokenIdFromRecord, isNumber, parseCoin, stateColor, timeConverHandler } from "@/core/utils";
 import { BondState, Metadata, NftItemRecord, stateName } from "@/types";
 import {
   Slider,
@@ -14,18 +14,15 @@ import { FC, useState } from "react";
 import { PrimaryButton } from "./Buttons";
 import { useWeb3 } from "@/hooks/useWeb3";
 import firebase from "firebase";
-import { TOKEN_NAME, TREASURY_ADDRESS } from "@/constants";
-import { ethers } from "ethers";
+import { NFT_COLLECTION_ADDRESS, PROJECT_NAME, TOKEN_NAME, TREASURY_ADDRESS } from "@/constants";
 
 type BondPanelProps = {
   item: Metadata;
-  isOwnerOrBorrower: boolean;
   duration: number;
 }
 
 const BondPanel: FC<BondPanelProps> = ({
   item,
-  isOwnerOrBorrower,
   duration,
 }) => {
   const { connected, bondManager, poolManager, tokenManager, checkAllowanceTreasury, checkBalance, update } = useWeb3();
@@ -43,23 +40,28 @@ const BondPanel: FC<BondPanelProps> = ({
     return new Date(date.getTime() + duration * 1000);
   };
 
-  function getMonthRange(minDate: any, maxDate: any) {
-    let minYear = minDate.getFullYear();
-    let minMonth = minDate.getMonth() + 1;
-    let maxYear = maxDate.getFullYear();
-    let maxMonth = maxDate.getMonth() + 1;
-    return (maxYear * 12 + maxMonth) - (minYear * 12 + minMonth)
+  function getCurrentRange(duration: number, minDate: any, maxDate: any) {
+    if ((minDate.getTime() + duration) < maxDate.getTime()) {
+      return duration
+    } else {
+      let minYear = minDate.getFullYear();
+      let minMonth = minDate.getMonth() + 1;
+      let maxYear = maxDate.getFullYear();
+      let maxMonth = maxDate.getMonth() + 1;
+      console.log((maxYear * 12 + maxMonth) - (minYear * 12 + minMonth))
+      return (maxYear * 12 + maxMonth) - (minYear * 12 + minMonth)
+    }
   };
 
   let start_time;
   let end_time;
   let today;
-  let monthRange;
+  let currentRange;
   if (item.activated_time) {
     start_time = new Date(item.activated_time);
     end_time = addDuration(new Date(item.activated_time), duration);
     today = new Date();
-    monthRange = getMonthRange(start_time, today)
+    currentRange = getCurrentRange(duration, start_time, today)
   }
 
   return (
@@ -88,7 +90,7 @@ const BondPanel: FC<BondPanelProps> = ({
             <Slider
               className="my-2"
               id='slider'
-              defaultValue={monthRange}
+              defaultValue={currentRange}
               min={0}
               max={duration}
               colorScheme='teal'
@@ -198,17 +200,21 @@ const BondPanel: FC<BondPanelProps> = ({
                 const tokenId = getTokenId(item);
                 if (tokenId) {
                   setBurnLoading(true);
-                  const success = await bondManager.burn({ tokenId, loanId: "" })
+                  let success = false;
+                  try {
+                    success = await bondManager.burn({ tokenId, loanId: "" })
+                    if (success) {
+                      const snapshot = await firebase.database().ref(`/records/${NFT_COLLECTION_ADDRESS}`).once("value");
+                      let records: NftItemRecord[] = snapshot.val();
+                      records = records.filter((record) => getTokenIdFromRecord(record) !== tokenId);
+                      await firebase.database().ref(`/records/${NFT_COLLECTION_ADDRESS}`).set(records)  // Clean NFT metadata cache
+                      alert("You have burned the Bond NFT. The Bond NFT will no longer be activated.");
+                    }
+                  } finally {
+                    setBurnLoading(false);
+                  }
                   if (success) {
-                    const snapshot = await firebase.database().ref("/records").once("value");
-                    let records: NftItemRecord[] = snapshot.val();
-                    records = records.filter((record) => getTokenIdFromRecord(record) !== tokenId);
-                    await firebase.database().ref("/records").set(records)  // Clean NFT metadata cache
-                    alert("You have burned the Bond NFT. The Bond NFT will no longer be activated.");
-                    setBurnLoading(false);
                     window.location.replace("/treasury/bonds");
-                  } else {
-                    setBurnLoading(false);
                   }
                 } else {
                   alert("Token ID not found.");
@@ -227,7 +233,7 @@ const BondPanel: FC<BondPanelProps> = ({
         <hr />
         <form className="mt-4" onSubmit={(e) => e.preventDefault()}>
           <div className="mb-4 flex gap-2 items-center">
-            <input type="number" id="deposit-amount" className="text-sm rounded-lg px-2 py-1" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
+            <input type="number" id="deposit-amount" className="text-sm rounded-lg px-3 py-2 w-[130px]" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
             <label htmlFor="deposit-amount" className="text-sm text-gray-300">{TOKEN_NAME}</label>
           </div>
           {
@@ -237,7 +243,7 @@ const BondPanel: FC<BondPanelProps> = ({
                   <Spinner />
                 </div>
               </PrimaryButton>
-            ) : item.poolCreated ? (isNumber(depositAmount) && !checkAllowanceTreasury(ethers.utils.parseEther(depositAmount).toString())) ? (
+            ) : item.poolCreated ? (isNumber(depositAmount) && !checkAllowanceTreasury(parseCoin(depositAmount).toString())) ? (
               <PrimaryButton
                 disabled={!connected}
                 onClick={async () => {
@@ -245,7 +251,7 @@ const BondPanel: FC<BondPanelProps> = ({
                     if (connected) {
                       setCreateLoading(true);
                       try {
-                        await tokenManager.approveToken(TREASURY_ADDRESS, ethers.utils.parseEther(depositAmount).toString());
+                        await tokenManager.approveToken(TREASURY_ADDRESS, parseCoin(depositAmount).toString());
                         update();
                       } finally {
                         setCreateLoading(false);
@@ -256,7 +262,7 @@ const BondPanel: FC<BondPanelProps> = ({
                   }
                 }}
               >Approve WBNB</PrimaryButton>
-            ) : (isNumber(depositAmount) && !checkBalance(ethers.utils.parseEther(depositAmount).toString())) ? (
+            ) : (isNumber(depositAmount) && !checkBalance(parseCoin(depositAmount).toString())) ? (
               <PrimaryButton
                 disabled={!connected}
                 onClick={async () => {
@@ -264,7 +270,7 @@ const BondPanel: FC<BondPanelProps> = ({
                     if (connected) {
                       setCreateLoading(true);
                       try {
-                        await tokenManager.wrapToken(ethers.utils.parseEther(depositAmount).toString());
+                        await tokenManager.wrapToken(parseCoin(depositAmount).toString());
                         update();
                       } finally {
                         setCreateLoading(false);
@@ -317,7 +323,17 @@ const BondPanel: FC<BondPanelProps> = ({
           }
         </form>
       </div>
-      <p className="mt-4 text-sm text-gray-300">Anyone can deposit <b>${TOKEN_NAME}</b> into the Treasury pool, while only the owner can withdraw them from the pool.</p>
+      <p className="mt-4 text-sm text-gray-300">
+        Anyone can deposit <b>${TOKEN_NAME}</b> into the Treasury pool, while only the owner can withdraw them from the pool.
+      </p>
+      <div className="mt-4">
+        <hr />
+        <h3 className="mt-4 font-bold">{PROJECT_NAME} Finance</h3>
+        <PrimaryButton className="mt-4" onClick={() => location.replace("/finance/asset/" + getTokenId(item))}>Go to {PROJECT_NAME} Finance</PrimaryButton>
+        <p className="mt-4 text-sm text-gray-300">
+          With the Bond NFT, you can <b>borrow money</b> from <b>{PROJECT_NAME} Finance</b> under the collateral of your future income.
+        </p>
+      </div>
 
 
     </div>

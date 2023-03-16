@@ -1,8 +1,5 @@
 import { TonConnectButton } from "@tonconnect/ui-react";
-import { Web3Button } from "@web3modal/react";
 import { FC, ReactNode } from "react";
-
-import { THEME } from "@/constants";
 
 type PrimaryButtonProps = {
   children?: ReactNode;
@@ -51,7 +48,6 @@ export const TableButton: FC<TableButtonProps> = ({
   );
 };
 
-const WalletConnectButton: FC =
-  THEME === "1ton" ? TonConnectButton : Web3Button;
+const WalletConnectButton: FC = TonConnectButton;
 
 export default WalletConnectButton;

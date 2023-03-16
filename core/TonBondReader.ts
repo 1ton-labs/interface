@@ -1,20 +1,21 @@
 import { NFT_COLLECTION_ADDRESS } from "@/constants";
-import { Collection } from "@/contracts/1ton_Collection";
-import { Item } from "@/contracts/1ton_Item";
-import { Metadata, NftItemRecord, TactContract } from "@/types";
+import { Bond as BondContract } from "@/contracts/1ton/Bond";
+import { BondItem as BondItemContract } from "@/contracts/1ton/BondItem";
+import { Metadata, NftItemRecord, FuncContract } from "@/types";
 import firebase from "firebase";
 import { Address, TonClient4 } from "ton";
 import { IBondReader } from "./IBondReader";
 import { getMetadata } from "./metadata";
 
 export class TonBondReader implements IBondReader {
-
   private client4: TonClient4;
-  private collection: TactContract<Collection>;
+  private collection: FuncContract<BondContract>;
 
   constructor() {
     this.client4 = new TonClient4({ endpoint: "https://sandbox-v4.tonhubapi.com" });
-    this.collection = this.client4.open(Collection.fromAddress(Address.parse(NFT_COLLECTION_ADDRESS)));
+    this.collection = this.client4.open(
+      new BondContract(Address.parse(NFT_COLLECTION_ADDRESS))
+    );
   }
 
   async getBond(tokenId: string): Promise<Metadata> {
@@ -31,14 +32,14 @@ export class TonBondReader implements IBondReader {
       itemRecords.push(...cacheRecords);
     }
     // Load new NFTs
-    const collectionData = await this.collection.getGetCollectionData();
+    const collectionData = await this.collection.getCollectionData();
     const itemNum = Number(collectionData.next_item_index);
     for (let i = itemRecords.length; i < itemNum; i++) {
       changed = true;
-      const nftItemAddress = await this.collection.getGetNftAddressByIndex(BigInt(i));
+      const nftItemAddress = await this.collection.getNftAddressByIndex(i);
       if (nftItemAddress) {
-        const item = this.client4.open(Item.fromAddress(nftItemAddress));
-        const data = await item.getGetNftData();
+        const item = this.getBondItemContract(nftItemAddress.toString());
+        const data = await item.getNftData();
         itemRecords.push({
           token_id: i,
           address: nftItemAddress.toString(),
@@ -55,21 +56,25 @@ export class TonBondReader implements IBondReader {
   }
 
   async getBondActivatedTime(tokenId: string): Promise<number> {
-    throw Error("Not implemented");
+    const item = this.getBondItemContract(tokenId);
+    const data = await item.getNftData();
+    return data.activate_time;
   }
 
-  async fetchMetadataByAddress(address: string): Promise<Metadata> {
-    // It only supports testnet
-    const client4 = new TonClient4({
-      endpoint: "https://sandbox-v4.tonhubapi.com",
-    });
-    const item = client4.open(Item.fromAddress(Address.parse(address)));
-    const data = await item.getGetNftData();
+  async fetchMetadataByAddress(tokenId: string): Promise<Metadata> {
+    const item = this.getBondItemContract(tokenId);
+    const data = await item.getNftData();
     const metadata: Metadata = await getMetadata(Number(data.index));
     metadata.token_id = Number(data.index);
-    metadata.token_address = address;
+    metadata.token_address = tokenId;
     metadata.owner_address = data.owner_address ? data.owner_address.toString() : "";
+    metadata.activated_time = data.activate_time;
     return metadata;
   }
 
+  private getBondItemContract(key: string) {
+    return this.client4.open(
+      BondItemContract.createFromAddress(Address.parse(key))
+    );
+  }
 }

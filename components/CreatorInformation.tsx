@@ -1,5 +1,5 @@
 import { IncomesChart } from "@/components/IncomesChart";
-import { nFormatter, platformTypeHandler, stateColor } from "@/core/utils";
+import { nFormatter, platformTypeHandler, safeUserImage, stateColor } from "@/core/utils";
 import { Income, NftState, Profile, stateName } from "@/types";
 import { FC } from "react";
 
@@ -85,7 +85,7 @@ export const CreatorInformation: FC<CreatorInformationProps> = ({
       <div className="flex gap-y-5 flex-col">
         <Title platform={platform} creatorName={creatorName} id={id} state={state} />
         <div className="grid grid-cols-3 gap-4">
-          <img className="rounded-xl w-44 h-44 shadow-purpleShadow" src={image} />
+          <img className="rounded-xl w-44 h-44 shadow-purpleShadow" src={safeUserImage(image)} />
           <div className="col-span-2 text-info-white font-main">{plan}</div>
         </div>
       </div>

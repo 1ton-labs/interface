@@ -1,16 +1,13 @@
-import { BigNumber, ethers } from "ethers";
 import firebase from "firebase";
-import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, FC, SetStateAction, useState } from "react";
 import DatePicker from "react-datepicker";
 import { Address, Dictionary, TonClient4 } from "ton";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { LENDING_PROTOCOL_ADDRESS, NFT_BASE_URI, THEME, TONSCAN_URL } from "@/constants";
+import { LENDING_PROTOCOL_ADDRESS, NFT_BASE_URI, NFT_COLLECTION_ADDRESS, TONSCAN_URL } from "@/constants";
 import { Lending } from "@/contracts/1ton_Lending";
-import { EthTokenReader } from "@/core/EthTokenReader";
 import { generateMetadata } from "@/core/metadata";
-import { isNumber, getEthChain, numberWithCommas } from "@/core/utils";
-import { provider } from "@/core/wagmi";
+import { isNumber } from "@/core/utils";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Loan, Metadata, stateName } from "@/types";
 
@@ -27,9 +24,9 @@ function printDictionary(dictionary: Dictionary<Address, any>) {
 }
 
 type DebugConsoleProps = {
-  item: Metadata|null;
-  loan: Loan|null;
-  customDate: Date|null;
+  item: Metadata | null;
+  loan: Loan | null;
+  customDate: Date | null;
   setCustomDate: Dispatch<SetStateAction<Date>>;
 };
 
@@ -41,10 +38,6 @@ const DebugConsole: FC<DebugConsoleProps> = ({ item, loan, customDate, setCustom
   const [platform, setPlatform] = useState<string>("BintanGO");
   const [metadata, setMetadata] = useState<string>("");
   const [userAddress, setUserAddress] = useState<string>("");
-  const [bnbBalance, setBnbBalance] = useState<string>("0");
-  const [wbnbBalance, setWbnbBalance] = useState<string>("0");
-  const [depositBnbAmt, setDepositBnbAmt] = useState<string>("0");
-  const [withdrawWbnbAmt, setWithdrawWbnbAmt] = useState<string>("0");
 
   let isOwner = false;
   if (item?.owner_address) {
@@ -55,25 +48,6 @@ const DebugConsole: FC<DebugConsoleProps> = ({ item, loan, customDate, setCustom
   if (loan) {
     isLender = Address.parse(loan.lender).toString() === address;
   }
-
-  const getBnbBalance = async (address: string) => {
-    const chain = getEthChain();
-    const providerInstance = provider({ chainId: chain.id })
-    const balance = await providerInstance.getBalance(address);
-    return balance;
-  }
-
-  useEffect(() => {
-    (async () => {
-      if (connected && address && THEME === 'sprout') {
-        const bnb = await getBnbBalance(address);
-        const tokenReader = new EthTokenReader();
-        const wbnb = await tokenReader.balanceWBNB(address);
-        setBnbBalance(bnb.toString());
-        setWbnbBalance(wbnb.toString());
-      }
-    })()
-  }, [connected, address])
 
   return (
     <div className="mt-20">
@@ -133,8 +107,8 @@ const DebugConsole: FC<DebugConsoleProps> = ({ item, loan, customDate, setCustom
           <h3 className="block mb-2 text-lg font-medium">Database</h3>
           <div className="flex gap-2">
             <button className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600" onClick={async () => {
-              await firebase.database().ref(`/records`).remove();
-              alert("Cleaned the cache `/records` in the database.")
+              await firebase.database().ref(`/records/${NFT_COLLECTION_ADDRESS}`).remove();
+              alert("Cleaned the cache `/records/${NFT_COLLECTION_ADDRESS}` in the database.")
             }}>Clean NFT Metadata Cache</button>
             <button className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600" onClick={async () => {
               await firebase.database().ref(`/terms`).remove();
@@ -311,81 +285,6 @@ const DebugConsole: FC<DebugConsoleProps> = ({ item, loan, customDate, setCustom
         </div>
         <div>
           <code className="text-xs whitespace-pre">{metadata}</code>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <h3 className="block mb-2 text-lg font-medium">WBNB Operation</h3>
-        <div className="flex-row gap-2">
-          <div>
-            <h4 className="mb-1 font-medium">BNB to WBNB (Balance: {numberWithCommas(ethers.utils.formatEther(bnbBalance))} BNB)</h4>
-
-            <div className="mb-2 flex items-end gap-2">
-              <div>
-                <input
-                  id="username"
-                  type="text"
-                  value={depositBnbAmt}
-                  onChange={(e) => setDepositBnbAmt(e.target.value)}
-                  placeholder={"0"}
-                  className="max-w-[600px] bg-neutral-700 border border-neutral-400 text-info-white text-sm rounded-lg focus:ring-blue-500 focus:border-accent block w-full p-2.5"
-                />
-              </div>
-
-              <button
-                className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600"
-                onClick={async () => {
-                  try {
-                    const amount = BigNumber.from(ethers.utils.parseEther(depositBnbAmt));
-                    if (amount.lte(BigNumber.from(0)) || amount.gt(bnbBalance)) {
-                      throw new Error("Invalid deposit amount.");
-                    }
-                    
-                    await tokenManager.wrapToken(amount.toString());
-                    location.reload();
-                  } catch (err) {
-                    console.error(err);
-                    alert(err)
-                  }
-                }}
-              >Deposit</button>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="mb-1 font-medium">WBNB to BNB (Balance: {numberWithCommas(ethers.utils.formatEther(wbnbBalance))} WBNB)</h4>
-
-            <div className="mb-2 flex items-end gap-2">
-              <div>
-                <input
-                  id="username"
-                  type="text"
-                  value={withdrawWbnbAmt}
-                  onChange={(e) => setWithdrawWbnbAmt(e.target.value)}
-                  placeholder={"0"}
-                  className="max-w-[600px] bg-neutral-700 border border-neutral-400 text-info-white text-sm rounded-lg focus:ring-blue-500 focus:border-accent block w-full p-2.5"
-                />
-              </div>
-
-              <button
-                className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600"
-                onClick={async () => {
-                  try {
-                    const amount = BigNumber.from(ethers.utils.parseEther(withdrawWbnbAmt));
-                    if (amount.lte(BigNumber.from(0)) || amount.gt(wbnbBalance)) {
-                      throw new Error("Invalid deposit amount.");
-                    }
-                    
-                    await tokenManager.withdrawToken(amount.toString());
-                    location.reload();
-                  } catch (err) {
-                    console.error(err);
-                    alert(err)
-                  }
-                }}
-              >Withdraw</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

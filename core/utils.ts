@@ -1,20 +1,15 @@
 import { CHAIN } from "@tonconnect/protocol";
-import { ethers } from "ethers";
 import { Address, fromNano, toNano } from "ton-core";
-import { bsc, bscTestnet, hardhat } from "wagmi/chains";
 
-import { EthLoanReader } from "./EthLoanReader";
 import { ILoanReader } from "./ILoanReader";
 import { TonLoanReader } from "./TonLoanReader";
-import { APP_CHAIN, THEME } from "@/constants";
+import { APP_CHAIN } from "@/constants";
 import { platformConfig } from "@/pages/treasury/mint";
-import { BondState, Loan, Metadata, NftItemRecord, NftItemTrait, NftState, platformType, RawLoan } from "@/types";
+import { BondState, Loan, Metadata, NftItemRecord, NftItemTrait, NftState, platformType, RawLoan, Income } from "@/types";
 import { IBondReader } from "./IBondReader";
 import { TonBondReader } from "./TonBondReader";
-import { EthBondReader } from "./EthBondReader";
 import { IPoolReader } from "./IPoolReader";
-import { DummyPoolReader } from "./DummyPoolReader";
-import { EthPoolReader } from "./EthPoolReader";
+import { TonPoolReader } from "./TonPoolReader";
 
 export const stateColor = (state: NftState | BondState) => {
   switch (state) {
@@ -106,6 +101,10 @@ export function truncatedText(text: string, truncatedNum: number) {
   }
 }
 
+export function recentIncome(incomes: Income[], platform: string) {
+  const platformIncomes = incomes.filter((income) => income.platform === platform)[0];
+  return platformIncomes.past_incomes[platformIncomes.past_incomes.length - 1]
+}
 export function numberWithCommas(x: number | string) {
   return Number(x).toLocaleString("en");
   // return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -175,79 +174,68 @@ export function safeNano(src: number | string | bigint) {
 }
 
 export function parseAddress(address: string) {
-  return THEME === "1ton" ? Address.parse(address).toString() : address;
+  return Address.parse(address).toString();
 };
 
 export function getTokenId(metadata: Metadata): string {
-  return THEME === "1ton" ? metadata.token_address ?? "" : metadata.token_id?.toString() ?? "";
+  return metadata.token_address ?? "";
 }
 
 export function getTokenIdFromRecord(record: NftItemRecord): string {
-  return THEME === "1ton" ? record.address ?? "" : record.token_id.toString() ?? "";
+  return record.address ?? "";
 }
 
 export async function getBond(tokenId: string): Promise<Metadata> {
-  const bondReader: IBondReader = THEME === "1ton" ? new TonBondReader() : new EthBondReader();
+  const bondReader: IBondReader = new TonBondReader();
   const bond = await bondReader.getBond(tokenId);
   const activatedTime = await bondReader.getBondActivatedTime(tokenId);
   bond.activated_time = activatedTime;
-  if (activatedTime > 0 && (activatedTime + bond.duration > Date.now())) {
+  if (activatedTime > 0 && (activatedTime * 1000 + bond.duration * 1000 > Date.now())) {
     bond.activated = BondState.ACTIVATED;
-  } else if (activatedTime > 0 && activatedTime + bond.duration < Date.now()) {
+  } else if (activatedTime > 0 && activatedTime * 1000 + bond.duration * 1000 < Date.now()) {
     bond.activated = BondState.EXPIRED;
   } else {
     bond.activated = BondState.INACTIVATED;
   }
-  const poolReader: IPoolReader = THEME === "1ton" ? new DummyPoolReader() : new EthPoolReader();  // TODO: implement TonPoolReader
+  const poolReader: IPoolReader = new TonPoolReader();
   bond.poolCreated = await poolReader.poolCreated(getTokenId(bond));
   const balance = await poolReader.getBalance(getTokenId(bond));
-  bond.balance = THEME === "1ton" ? fromNano(balance) : ethers.utils.formatEther(balance);
+  bond.balance = formatCoin(balance);
   return bond;
 }
 
 export async function getBondRecords(): Promise<NftItemRecord[]> {
-  const bondReader: IBondReader = THEME === "1ton" ? new TonBondReader() : new EthBondReader();
+  const bondReader: IBondReader = new TonBondReader();
   return bondReader.getBondRecords();
 }
 
 export async function getActiveLoanKeys(): Promise<string[]> {
-  const loanReader: ILoanReader = THEME === "1ton" ? new TonLoanReader() : new EthLoanReader();
+  const loanReader: ILoanReader = new TonLoanReader();
   const loans = await loanReader.getLoans()
   const activeTokenAddresses = Array.from(loans.keys());
   return activeTokenAddresses;
 }
 
 export async function getLoan(item: Metadata): Promise<Loan | null> {
-  const loanReader = THEME === "1ton" ? new TonLoanReader() : new EthLoanReader();
+  const loanReader = new TonLoanReader();
   return loanReader.getLoanByBond({
     loanId: '',
     tokenId: getTokenId(item),
   });
 }
 
-export function getEthChain() {
-  if (APP_CHAIN === "bsc")
-    return bsc;
-  else if (APP_CHAIN === "bsc-testnet")
-    return bscTestnet;
-
-  return hardhat;
-}
-
 export function safeUserImage(image: string) {
   if (image === "") {
-    if (THEME === "1ton") {
-      return "/1ton/1ton_unknown_user.png"
-    } else {
-      return "/sprout/sprout_unknown_user.png"
-    }
+    return "/1ton/1ton_unknown_user.png"
   } else {
     return image
   }
 }
 
-export function formatTonOrETH(value: string) {
-  if (THEME === "1ton")
-    return fromNano(value)
-  return ethers.utils.formatEther(value)
+export function parseCoin(value: string) {
+  return safeNano(value);
+}
+
+export function formatCoin(value: string) {
+  return fromNano(value);
 }

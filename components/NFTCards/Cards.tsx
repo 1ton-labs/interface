@@ -1,9 +1,8 @@
-import { platformTypeHandler, stateColor, timeConverHandler, truncatedText } from "@/core/utils";
+import { platformTypeHandler, safeUserImage, stateColor, timeConverHandler, truncatedText, recentIncome } from "@/core/utils";
 import { stateName, NftState, NftItemTrait, Income } from "@/types";
 import { FC } from "react";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { useRouter } from "next/router";
-import { THEME } from "@/constants";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDollarSign } from "@fortawesome/free-solid-svg-icons";
 
@@ -22,7 +21,7 @@ type NFTCardProps = {
 }
 
 export const Card: FC<NFTCardProps> = (props) => {
-  return THEME === "1ton" ? <VCard {...props} /> : <HCard {...props} />;
+  return <VCard {...props} />;
 }
 
 const VCard: FC<NFTCardProps> = ({
@@ -34,6 +33,9 @@ const VCard: FC<NFTCardProps> = ({
   attributes,
   holder,
   baseUrl,
+  duration,
+  percentage,
+  incomes,
 }) => {
   const { connected, prettyAddress } = useWeb3();
   const router = useRouter();
@@ -57,35 +59,39 @@ const VCard: FC<NFTCardProps> = ({
       <div className="flex gap-x-2 mt-3 items-center">
         <span className="w-5 h-5">{platformTypeHandler(platform).icon(socilaMediaStyle)}</span>
         <div className="font-bold text-start">
-        {displayName}
+          {displayName}
         </div>
       </div>
       <div className="flex justify-center">
-        <img className="p-4 w-40 h-40 rounded-full" src={image} alt={displayName}/>
+        <img className="p-4 w-40 h-40 rounded-full" src={safeUserImage(image)} alt={displayName} />
       </div>
-      <div className="flex justify-between">
-        
-        {
-          attributes.filter((attribute) => attribute.trait_type !== "Last Update").map((attribute) => (
-            <div key={attribute.trait_type}>
-              <div className="text-sm text-secondary-light">{attribute.trait_type}</div>
-              <div>{attribute.value}</div>
-            </div>
-          ))
-        }
+      <div className="grid grid-cols-2 gap-1 text-start text-sm">
+        <div>
+          <div className="text-sm text-secondary-light">Duration</div>
+          <div>{timeConverHandler(duration)}</div>
+        </div>
+        <div>
+          <div className="text-sm text-secondary-light">Percentage</div>
+          <div>{`${percentage} %`}</div>
+        </div>
+        <div className="col-span-2">
+          <div className="text-sm text-secondary-light">Recent Income</div>
+          <div>
+            {recentIncome(incomes, platform)}
+            <FontAwesomeIcon icon={faDollarSign} className="w-4" />
+          </div>
+        </div>
       </div>
       {
-        currentPath === "all" ? (
+        currentPath === "all" ?? (
           <div className="w-full h-10 text-primary-normal mt-2 text-sm text-center">
             {displayUser === displayOwner ? (
               "You own this item."
-            ) 
-            : (
-              "Holder: " + displayOwner
-            )}
+            )
+              : (
+                "Holder: " + displayOwner
+              )}
           </div>
-        ) : (
-            <div className="mt-3 text-sm text-secondary-light">{`Last posted at ${attributes[2].value}`}</div>
         )
       }
     </button>
@@ -107,10 +113,7 @@ const HCard: FC<NFTCardProps> = ({
 }) => {
   const socilaMediaStyle = "fill-white";
   const { connected, prettyAddress } = useWeb3();
-  const recentIncome = (incomes: Income[]) => {
-    const platformIncomes = incomes.filter((income) => income.platform === platform)[0];
-    return platformIncomes.past_incomes[platformIncomes.past_incomes.length - 1]
-  }
+
   const displayUser = connected ? prettyAddress : "Guest";
   const displayOwner = holder ? prettyAddress : undefined;
   return (
@@ -123,7 +126,7 @@ const HCard: FC<NFTCardProps> = ({
         <div className="flex gap-x-2 items-center">
           <span className="w-5 h-5">{platformTypeHandler(platform).icon(socilaMediaStyle)}</span>
           <div className="font-bold text-start">
-          {displayName}
+            {displayName}
           </div>
         </div>
         {state !== undefined && (
@@ -135,7 +138,7 @@ const HCard: FC<NFTCardProps> = ({
       </header>
       <main className="flex gap-x-5">
         <div className="flex justify-center">
-          <img className="w-24 h-24 rounded-full shadow-grayShadow" src={image} alt={displayName}/>
+          <img className="w-24 h-24 rounded-full shadow-grayShadow" src={safeUserImage(image)} alt={displayName} />
         </div>
         <div className="w-40 grid grid-cols-2 gap-1 text-start text-sm">
           <div>
@@ -149,8 +152,8 @@ const HCard: FC<NFTCardProps> = ({
           <div className="col-span-2">
             <div className="text-sm text-secondary-light">Recent Income</div>
             <div>
-              {recentIncome(incomes)}
-              <FontAwesomeIcon icon={faDollarSign} className="w-4"/>
+              {recentIncome(incomes, platform)}
+              <FontAwesomeIcon icon={faDollarSign} className="w-4" />
             </div>
           </div>
         </div>
