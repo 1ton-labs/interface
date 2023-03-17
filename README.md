@@ -5,6 +5,8 @@
 </p>
 
 <h4 align="center">Empowers unbanked creators to achieve their financial goals and thrive in their businesses 🏦</h4>
+<p align="center">Visit the <a href="https://1ton-labs.vercel.app/" target="_blank">demo site</a></p>
+<p align="center">Watch the <a href="https://drive.google.com/file/d/1Zui-rPksBoit4aQHcYILmD2C2f-hZI7j/view?usp=sharing" target="_blank">demo video</a></p>
 <br />
 
 1Ton provides customized financial solutions for creators who thrive in the creator economy. By combining the permissionless and transparent key features of crypto/blockchain technology with the finest creator platform of Web 2.0, 1Ton is uniquely positioned to serve the needs of creators.
@@ -13,8 +15,7 @@
 
 - 📋 [Documentation](#documentation)
 - 🚀 [Roadmap](#roadmap)
-- ⚛️ [Technologies](#technologies)
-- 💻 [Setup](#setup)
+- 💻 [Setup](#get-started)
 
 ## Documentation
 
