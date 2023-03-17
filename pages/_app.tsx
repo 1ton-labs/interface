@@ -29,18 +29,18 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       {ready ? (
-          <TonConnectUIProvider
-            manifestUrl="https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json" // TODO: change to our manifest
-          // connector={new TonConnect({ manifestUrl: "https://raw.githubusercontent.com/ton-connect/wallets-list/main/wallets.json" })}
-          >
-            <TonDnsProvider>
-              <Web3Provider>
-                <ChakraProvider theme={theme}>
-                  <Component {...pageProps} />
-                </ChakraProvider>
-              </Web3Provider>
-            </TonDnsProvider>
-          </TonConnectUIProvider>
+        <TonConnectUIProvider
+          manifestUrl="https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json" // TODO: change to our manifest
+        // connector={new TonConnect({ manifestUrl: "https://raw.githubusercontent.com/ton-connect/wallets-list/main/wallets.json" })}
+        >
+          <TonDnsProvider>
+            <Web3Provider>
+              <ChakraProvider theme={theme}>
+                <Component {...pageProps} />
+              </ChakraProvider>
+            </Web3Provider>
+          </TonDnsProvider>
+        </TonConnectUIProvider>
       ) : null}
     </>
   );

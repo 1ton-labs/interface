@@ -10,7 +10,6 @@ import { Loan } from "@/types";
 type LoanPanelProps = {
   loan: Loan;
   tokenId: string;
-  isOwner: boolean;
   isBorrower: boolean;
   isLender: boolean;
   customDate: Date;
@@ -97,8 +96,6 @@ export const LoanPanel: FC<LoanPanelProps> = ({ loan, tokenId, isBorrower, isLen
             <PrimaryButton
               disabled={customDate < dueDate}
               onClick={async () => {
-                // await firebase.database().ref(`/loans/${tokenId}`).remove();
-                // location.reload();
                 if (connected) {
                   await loanManager.claim({ loanId: loan.loan_id, tokenId })
                   location.reload();

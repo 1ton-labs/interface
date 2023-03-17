@@ -1,15 +1,14 @@
 import { CHAIN } from "@tonconnect/protocol";
 import { Address, fromNano, toNano } from "ton-core";
 
-import { ILoanReader } from "./ILoanReader";
-import { TonLoanReader } from "./TonLoanReader";
-import { APP_CHAIN } from "@/constants";
+import { ILoanReader } from "./readers/ILoanReader";
+import { TonLoanReader } from "./readers/TonLoanReader";
 import { platformConfig } from "@/pages/treasury/mint";
 import { BondState, Loan, Metadata, NftItemRecord, NftItemTrait, NftState, platformType, RawLoan, Income } from "@/types";
-import { IBondReader } from "./IBondReader";
-import { TonBondReader } from "./TonBondReader";
-import { IPoolReader } from "./IPoolReader";
-import { TonPoolReader } from "./TonPoolReader";
+import { IBondReader } from "./readers/IBondReader";
+import { TonBondReader } from "./readers/TonBondReader";
+import { IPoolReader } from "./readers/IPoolReader";
+import { TonPoolReader } from "./readers/TonPoolReader";
 
 export const stateColor = (state: NftState | BondState) => {
   switch (state) {
@@ -73,10 +72,6 @@ export function platformTypeHandler(platform: string) {
       return platformConfig.TELEGRAM;
     case platformType.BINTANGO:
       return platformConfig.BINTANGO;
-    case platformType.CYBERCONNECT:
-      return platformConfig.CYBERCONNECT;
-    case platformType.LENS:
-      return platformConfig.LENS;
     default:
       return platformConfig.UNKNOWN;
   }
@@ -140,7 +135,7 @@ export function prettifyAddress(anyAddress: string, toTonDns: (address: string) 
 
 export function parseLoan(rawLoan: RawLoan) {
   const loan: Loan = {
-    loan_id: "",  // TODO:
+    loan_id: "",
     principal: rawLoan.principal.toString(),
     repayment: rawLoan.repayment.toString(),
     duration: Number(rawLoan.duration),
@@ -226,9 +221,9 @@ export async function getLoan(item: Metadata): Promise<Loan | null> {
 
 export function safeUserImage(image: string) {
   if (image === "") {
-    return "/1ton/1ton_unknown_user.png"
+    return "/1ton/1ton_unknown_user.png";
   } else {
-    return image
+    return image;
   }
 }
 

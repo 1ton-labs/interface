@@ -1,4 +1,3 @@
-import { MOCK_USER_ADDRESS } from "@/constants";
 import contents from "@/contents";
 import { getNftItems } from "@/core/api";
 import { BondProps } from "@/core/bond";
@@ -6,7 +5,6 @@ import { getTokenId } from "@/core/utils";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Metadata, NftState } from "@/types";
 import { FC, useEffect, useState } from "react";
-import { Address } from "ton";
 import NFTCards from "./NFTCards";
 
 export const BondContent: FC<BondProps> = ({ listedTokenIds, activeTokenIds, baseUrl }) => {
@@ -15,29 +13,7 @@ export const BondContent: FC<BondProps> = ({ listedTokenIds, activeTokenIds, bas
   const [holdItems, setHoldItems] = useState<Metadata[]>([]);
 
   useEffect(() => {
-    if (MOCK_USER_ADDRESS) {
-      (async () => {
-        alert(`On behavior of ${MOCK_USER_ADDRESS} which is set as NEXT_PUBLIC_MOCK_USER_ADDRESS in .env`);
-        setLoading(true);
-        const walletAddress = Address.parse(MOCK_USER_ADDRESS).toString();
-        const items = await getNftItems();
-        const _holdItems = items.filter((item) => item.owner_address === walletAddress);
-        _holdItems.forEach((item) => {
-          item.state = NftState.NOT_LISTED;
-          if (item.token_address) {
-            // FIXME: Should use NFT ID for ETH
-            if (listedTokenIds.includes(getTokenId(item))) {
-              item.state = NftState.LISTED;
-            }
-            if (activeTokenIds.includes(getTokenId(item))) {
-              item.state = NftState.ACTIVE;
-            }
-          }
-        });
-        setHoldItems(_holdItems);
-        setLoading(false);
-      })();
-    } else if (connected) {
+    if (connected) {
       (async () => {
         setHoldItems([]);
         setLoading(true);

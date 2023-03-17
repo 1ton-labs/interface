@@ -1,4 +1,3 @@
-import { THEME } from "@/constants";
 import { getTokenId } from "@/core/utils";
 import { Metadata, NftState } from "@/types";
 import { FC } from "react";
@@ -21,7 +20,6 @@ const NFTCards: FC<NFTCardsProps> = ({ items, baseUrl }) => {
             state={item.state ?? NftState.NOT_LISTED}
             platform={item.platform}
             image={item.image}
-            attributes={item.attributes}
             holder={item.owner_address ?? ""}
             baseUrl={baseUrl}
             duration={item.duration}

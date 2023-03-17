@@ -9,25 +9,23 @@ import {
   useState,
 } from "react";
 import { Address } from "ton-core";
-
-import { LENDING_PROTOCOL_ADDRESS, TREASURY_ADDRESS } from "@/constants";
-import { DummyBondManager } from "@/core/DummyBondManager";
-import { DummyLoanManager } from "@/core/DummyLoanManager";
-import { DummyLoanReader } from "@/core/DummyLoanReader";
-import { IBondManager } from "@/core/IBondManager";
-import { ILoanManager } from "@/core/ILoanManager";
-import { ILoanReader } from "@/core/ILoanReader";
-import { TonBondManager } from "@/core/TonBondManager";
-import { TonLoanManager } from "@/core/TonLoanManager";
-import { TonLoanReader } from "@/core/TonLoanReader";
-import { prettifyAddress, safeNano, shortStr } from "@/core/utils";
+import { DummyBondManager } from "@/core/managers/DummyBondManager";
+import { DummyLoanManager } from "@/core/managers/DummyLoanManager";
+import { DummyLoanReader } from "@/core/readers/DummyLoanReader";
+import { IBondManager } from "@/core/managers/IBondManager";
+import { ILoanManager } from "@/core/managers/ILoanManager";
+import { ILoanReader } from "@/core/readers/ILoanReader";
+import { TonBondManager } from "@/core/managers/TonBondManager";
+import { TonLoanManager } from "@/core/managers/TonLoanManager";
+import { TonLoanReader } from "@/core/readers/TonLoanReader";
+import { prettifyAddress, safeNano } from "@/core/utils";
 import { createSender } from "@/hooks/useTonConnect";
 import { useTonDns } from "@/hooks/useTonDns";
-import { DummyTokenManager } from "@/core/DummyTokenManager";
-import { ITokenManager } from "@/core/ITokenManager";
-import { DummyPoolManager } from "@/core/DummyPoolManager";
-import { IPoolManager } from "@/core/IPoolManager";
-import { TonPoolManager } from "@/core/TonPoolManager";
+import { DummyTokenManager } from "@/core/managers/DummyTokenManager";
+import { ITokenManager } from "@/core/managers/ITokenManager";
+import { DummyPoolManager } from "@/core/managers/DummyPoolManager";
+import { IPoolManager } from "@/core/managers/IPoolManager";
+import { TonPoolManager } from "@/core/managers/TonPoolManager";
 
 const DUMMY_BOND_MANAGER = new DummyBondManager();
 const DUMMY_LOAN_READER = new DummyLoanReader();

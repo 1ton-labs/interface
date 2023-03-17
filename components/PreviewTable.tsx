@@ -8,7 +8,7 @@ import { faUsersViewfinder, faUser, faDollarSign } from "@fortawesome/free-solid
 import { SkeletonCircle, SkeletonText } from '@chakra-ui/react'
 import { useWeb3 } from "@/hooks/useWeb3";
 import { APP_CHAIN } from "@/constants";
-import { IBondManager } from "@/core/IBondManager";
+import { IBondManager } from "@/core/managers/IBondManager";
 
 async function handleMint(
   bondManager: IBondManager,
@@ -78,9 +78,6 @@ const PreviewTable: FC<PreviewTableProps> = ({
   if (!isConnect) {
     return (
       <div className="col-span-4">
-        {/* <div className="fixed top-[165px] w-96 self-start backdrop-blur-md shadow-md bg-white/20 rounded-lg flex items-center justify-center h-40">
-          Please connect to your account.
-        </div> */}
       </div>
     )
   } else if (!metadata && isConnect) {

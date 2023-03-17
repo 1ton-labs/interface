@@ -1,19 +1,18 @@
-import { platformTypeHandler, safeUserImage, stateColor, timeConverHandler, truncatedText, recentIncome } from "@/core/utils";
-import { stateName, NftState, NftItemTrait, Income } from "@/types";
+import { platformTypeHandler, safeUserImage, stateColor, timeConverHandler, recentIncome } from "@/core/utils";
+import { stateName, NftState, Income } from "@/types";
 import { FC } from "react";
-import { useWeb3 } from "@/hooks/useWeb3";
 import { useRouter } from "next/router";
+import { useWeb3 } from "@/hooks/useWeb3";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDollarSign } from "@fortawesome/free-solid-svg-icons";
 
 type NFTCardProps = {
-  tokenId: string; // NFT address in TON, NFT ID in Ethereum
+  tokenId: string;  // NFT address in TON, NFT token ID in Ethereum
   displayName: string;
   state: NftState;
   platform: string;
   image: string;
-  attributes: NftItemTrait[];
-  holder: string; //owner_address
+  holder: string;  // Owner address
   baseUrl: string;
   duration: number;
   percentage: number;
@@ -30,7 +29,6 @@ const VCard: FC<NFTCardProps> = ({
   state,
   platform,
   image,
-  attributes,
   holder,
   baseUrl,
   duration,
@@ -94,70 +92,6 @@ const VCard: FC<NFTCardProps> = ({
           </div>
         )
       }
-    </button>
-  );
-};
-
-const HCard: FC<NFTCardProps> = ({
-  tokenId,
-  displayName,
-  state,
-  platform,
-  image,
-  attributes,
-  holder,
-  baseUrl,
-  duration,
-  percentage,
-  incomes,
-}) => {
-  const socilaMediaStyle = "fill-white";
-  const { connected, prettyAddress } = useWeb3();
-
-  const displayUser = connected ? prettyAddress : "Guest";
-  const displayOwner = holder ? prettyAddress : undefined;
-  return (
-    <button
-      className="bg-secondary-normal py-4 px-3 rounded-lg rounded-bl-[52px] shadow-greenShadow border border-transparent
-      hover:border-primary-light transition-all"
-      onClick={() => window.open(`${baseUrl}/asset/${tokenId}`, "_self")}
-    >
-      <header className="flex justify-between items-center mb-4">
-        <div className="flex gap-x-2 items-center">
-          <span className="w-5 h-5">{platformTypeHandler(platform).icon(socilaMediaStyle)}</span>
-          <div className="font-bold text-start">
-            {displayName}
-          </div>
-        </div>
-        {state !== undefined && (
-          <div className={`text-${stateColor(state)} flex items-center gap-x-1 px-1 py-0.5 text-sm`}>
-            <span className={`w-1.5 h-1.5 rounded bg-${stateColor(state)}`}></span>
-            {stateName(state)}
-          </div>
-        )}
-      </header>
-      <main className="flex gap-x-5">
-        <div className="flex justify-center">
-          <img className="w-24 h-24 rounded-full shadow-grayShadow" src={safeUserImage(image)} alt={displayName} />
-        </div>
-        <div className="w-40 grid grid-cols-2 gap-1 text-start text-sm">
-          <div>
-            <div className="text-sm text-secondary-light">Duration</div>
-            <div>{timeConverHandler(duration)}</div>
-          </div>
-          <div>
-            <div className="text-sm text-secondary-light">Percentage</div>
-            <div>{`${percentage} %`}</div>
-          </div>
-          <div className="col-span-2">
-            <div className="text-sm text-secondary-light">Recent Income</div>
-            <div>
-              {recentIncome(incomes, platform)}
-              <FontAwesomeIcon icon={faDollarSign} className="w-4" />
-            </div>
-          </div>
-        </div>
-      </main>
     </button>
   );
 };

@@ -1,5 +1,4 @@
 import { NextPage } from 'next';
-import styles from '@/styles/Home.module.css'
 import contents from '@/contents';
 import Layout from '@/components/Layout';
 import VanillaTilt from "vanilla-tilt";

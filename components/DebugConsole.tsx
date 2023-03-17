@@ -1,27 +1,15 @@
 import firebase from "firebase";
 import { Dispatch, FC, SetStateAction, useState } from "react";
 import DatePicker from "react-datepicker";
-import { Address, Dictionary, TonClient4 } from "ton";
+import { Address, TonClient4 } from "ton";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { LENDING_PROTOCOL_ADDRESS, NFT_BASE_URI, NFT_COLLECTION_ADDRESS, TONSCAN_URL } from "@/constants";
-import { Lending } from "@/contracts/1ton_Lending";
 import { generateMetadata } from "@/core/metadata";
 import { isNumber } from "@/core/utils";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Loan, Metadata, stateName } from "@/types";
-
-function printDictionary(dictionary: Dictionary<Address, any>) {
-  const keys = dictionary.keys();
-  const values = dictionary.values();
-  if (keys.length === 0) {
-    console.log("Empty");
-  } else {
-    for (let i = 0; i < keys.length; i++) {
-      console.log(keys[i].toString() + ": " + values[i]);
-    }
-  }
-}
+import { Lending } from "@/contracts/1ton/Lending";
 
 type DebugConsoleProps = {
   item: Metadata | null;
@@ -31,7 +19,7 @@ type DebugConsoleProps = {
 };
 
 const DebugConsole: FC<DebugConsoleProps> = ({ item, loan, customDate, setCustomDate }) => {
-  const { connected, address, prettyAddress, bondManager, tokenManager, send } = useWeb3();
+  const { connected, address, prettyAddress, bondManager, send } = useWeb3();
   const [recipient, setRecipient] = useState<string>();
   const [amount, setAmount] = useState<string>();
   const [username, setUsername] = useState<string>("durov");
@@ -175,15 +163,15 @@ const DebugConsole: FC<DebugConsoleProps> = ({ item, loan, customDate, setCustom
           <div className="flex gap-2">
             <button className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600" onClick={async () => {
               const client4 = new TonClient4({ endpoint: "https://sandbox-v4.tonhubapi.com" });
-              const lending = client4.open(Lending.fromAddress(Address.parse(LENDING_PROTOCOL_ADDRESS)));
-              const pools = await lending.getDepositpool();
-              printDictionary(pools);
+              const lending = client4.open(new Lending(Address.parse(LENDING_PROTOCOL_ADDRESS)));
+              const pools = await lending.getDepositPool();
+              console.log(pools);
             }}>Get Pools</button>
             <button className="p-2.5 bg-gray-700 rounded-lg hover:bg-gray-600" onClick={async () => {
               const client4 = new TonClient4({ endpoint: "https://sandbox-v4.tonhubapi.com" });
-              const lending = client4.open(Lending.fromAddress(Address.parse(LENDING_PROTOCOL_ADDRESS)));
-              const pools = await lending.getLoanpool();
-              printDictionary(pools);
+              const lending = client4.open(new Lending(Address.parse(LENDING_PROTOCOL_ADDRESS)));
+              const pools = await lending.getLoanPool();
+              console.log(pools);
             }}>Get Loans</button>
           </div>
         </div>

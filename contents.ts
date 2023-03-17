@@ -1,9 +1,5 @@
-import { THEME } from "./constants";
-
 const contents1ton = {
-  // title: "TAIPEI Hack-a-TONx",
   title: "1TON | Hack-a-TONx w/ DoraHacks",
-  // description: "TAIPEI Hack-a-TONx",
   description: "1TON at TAIPEI Hack-a-TONx",
   team: {
     name: "1TON",
@@ -13,8 +9,6 @@ const contents1ton = {
     image: "/1ton/1ton_logo.png",
     link: "https://github.com/1ton-labs",
     description: "1TON Logo",
-    // width: 100,
-    // height: 45,
   },
 
   oneliner: "Empowering the Unbanked Creators with Valued Digital Assets",

@@ -10,7 +10,7 @@ import { NextPage } from "next";
 import { Dispatch, FC, ReactNode, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import DropdownBox from "@/components/DropdownBox";
 import { Textarea, Input, Spinner } from '@chakra-ui/react';
-import { generateMetadataWithProfiles, getCyberConnectProfile, getLensProtocolProfile, getTwitterProfile } from "@/core/metadata";
+import { generateMetadataWithProfiles, getTwitterProfile } from "@/core/metadata";
 import PreviewTable from "@/components/PreviewTable";
 import { Metadata, Profile } from "@/types";
 
@@ -109,23 +109,6 @@ const Agreement: FC<AgreementProps> = ({ onOpen }) => {
             );
           }}
         </Disclosure>
-        {/* <Disclosure as="div" className="mt-2">
-          {({ open }) => (
-            <>
-              <Disclosure.Button className="flex w-full justify-between rounded-lg bg-purple-100 px-4 py-2 text-left text-sm font-medium text-purple-900 hover:bg-purple-200 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75">
-                <span>Do you offer technical support?</span>
-                <ChevronUpIcon
-                  className={`${
-                    open ? 'rotate-180 transform' : ''
-                  } h-5 w-5 text-purple-500`}
-                />
-              </Disclosure.Button>
-              <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm text-gray-500">
-                No.
-              </Disclosure.Panel>
-            </>
-          )}
-        </Disclosure> */}
       </div>
     </div>
   );
@@ -202,34 +185,6 @@ const PlatformSelect: FC<PlatformSelectProps> = ({
                   });
                 } else {
                   alert("Please enter valid email and password.");
-                }
-                break;
-              case platformConfig.CYBERCONNECT.name:
-                const cyberConnectProfile = await getCyberConnectProfile(address);
-                if (cyberConnectProfile) {
-                  setProfiles((prev) => {
-                    if (prev.some((p) => p.type === cyberConnectProfile.type)) {
-                      return prev;
-                    } else {
-                      return [...prev, cyberConnectProfile];
-                    }
-                  });
-                } else {
-                  alert("Cyber Connect profile not found.");
-                }
-                break;
-              case platformConfig.LENS.name:
-                const lensProtofolProfile = await getLensProtocolProfile(address);
-                if (lensProtofolProfile) {
-                  setProfiles((prev) => {
-                    if (prev.some((p) => p.type === lensProtofolProfile.type)) {
-                      return prev;
-                    } else {
-                      return [...prev, lensProtofolProfile];
-                    }
-                  });
-                } else {
-                  alert("Lens Protocol profile not found.");
                 }
                 break;
               default:

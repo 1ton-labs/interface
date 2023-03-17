@@ -1,12 +1,8 @@
-import { THEME } from '@/constants'
 import { Html, Head, Main, NextScript } from 'next/document'
 import Script from 'next/script'
 
 function getBasePath() {
-  if (THEME) {
-    return "/" + THEME + "/"
-  }
-  return "/";
+  return "/1ton/";
 }
 
 export default function Document() {

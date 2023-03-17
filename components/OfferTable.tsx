@@ -1,9 +1,9 @@
 import { numberWithCommas, shortStr } from "@/core/utils";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { Offer } from "@/types";
+import { Tooltip } from '@chakra-ui/react'
 import { FC } from "react";
 import { TableButton } from "./Buttons";
-import { Tooltip } from '@chakra-ui/react'
 
 type OfferTableProps = {
   offers: Offer[];
@@ -59,8 +59,6 @@ const OfferTable: FC<OfferTableProps> = ({ offers, isOwner, tokenId }) => {
                     </TableButton>
                   ) : address === offer.signer ? (
                     <TableButton onClick={async () => {
-                      // await firebase.database().ref(`/offers/${tokenId}/${userAddress}`).remove();
-                      // location.reload();
                       if (connected) {
                         await loanManager.cancelOffer(offer);
                         location.reload();

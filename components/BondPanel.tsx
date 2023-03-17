@@ -334,8 +334,6 @@ const BondPanel: FC<BondPanelProps> = ({
           With the Bond NFT, you can <b>borrow money</b> from <b>{PROJECT_NAME} Finance</b> under the collateral of your future income.
         </p>
       </div>
-
-
     </div>
   )
 };

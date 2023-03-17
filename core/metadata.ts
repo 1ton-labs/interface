@@ -1,9 +1,7 @@
 import firebase from "firebase";
 
-import { THEME } from "@/constants";
 import firebaseHelper from "@/firebaseHelper";
-import { DefaultProfileQuery } from "@/graphql/lens/generated";
-import { CCAddress, Income, Metadata, NftItemTrait, platformType, Profile } from "@/types";
+import { Income, Metadata, NftItemTrait, platformType, Profile } from "@/types";
 
 firebaseHelper.initFirebase();
 
@@ -14,14 +12,7 @@ const PROFILE_ORDER = [
   platformType.INSTAGRAM,
   platformType.TELEGRAM,
   platformType.YOUTUBE,
-  platformType.CYBERCONNECT,
-  platformType.LENS,
-  platformType.MIRROR,
 ];
-
-function convertIpfsUrl(url: string) {
-  return url.replace("ipfs://", "https://ipfs.io/ipfs/");
-}
 
 export const randomIncomes = () => {
   return [...Array(12)].map(_ => Math.ceil(Math.random() * 1000))
@@ -55,43 +46,6 @@ export async function getTwitterProfile(username: string): Promise<Profile> {
   }
 };
 
-export async function getCyberConnectProfile(address: string): Promise<Profile | undefined> {
-  const res = await fetch(`/api/cc?address=${address}`);
-  const resQL = await res.json();
-  const { wallet } = resQL.address as CCAddress;
-  if (wallet?.primaryProfile) {
-    return {
-      type: platformType.CYBERCONNECT,
-      id: address,
-      name: wallet.primaryProfile.handle,
-      image: convertIpfsUrl(wallet.primaryProfile.avatar),
-      link: "https://ipfs.moralis.io:2053/ipfs/" + wallet.primaryProfile.metadata,
-      followers: [0],
-      posts: [0],
-      last_update: "N/A",
-    }
-  }
-}
-
-export async function getLensProtocolProfile(address: string): Promise<Profile | undefined> {
-  const res = await fetch(`/api/lens?address=${address}`);
-  const defaultProfileQuery: DefaultProfileQuery = await res.json();
-  const lensUser = defaultProfileQuery.defaultProfile;
-  if (lensUser) {
-    const lensPicture = lensUser.picture as any;
-    return {
-      type: platformType.LENS,
-      id: address,
-      name: lensUser.name ?? "",
-      image: convertIpfsUrl(lensPicture.original.url),
-      link: "https://lenster.xyz/u/" + lensUser.handle,
-      followers: [lensUser.stats.totalFollowers],
-      posts: [lensUser.stats.totalPosts],
-      last_update: "N/A",
-    };
-  }
-}
-
 export async function generateMetadata(
   username: string,
   platform: string,
@@ -121,26 +75,6 @@ export async function generateMetadata(
         assured_incomes: [Math.floor(Math.random() * 100)],
       });
       break;
-    case "cyberconnect":
-      attributes.push({
-        trait_type: "Platform",
-        value: "CyberConnect",
-      });
-      incomes.push({
-        platform: platformType.CYBERCONNECT,
-        past_incomes: [Math.floor(Math.random() * 1000)],
-        estimated_incomes: [Math.floor(Math.random() * 1000)],
-        assured_incomes: [Math.floor(Math.random() * 100)],
-      });
-      break;
-    case "lens":
-      incomes.push({
-        platform: platformType.LENS,
-        past_incomes: [Math.floor(Math.random() * 1000)],
-        estimated_incomes: [Math.floor(Math.random() * 1000)],
-        assured_incomes: [Math.floor(Math.random() * 100)],
-      });
-      break;
     default:
       throw Error(`Unsupported platform: ${platform}. Only BintanGO, CyberConnect and Lens work.`);
   }
@@ -164,7 +98,7 @@ export async function generateMetadata(
     description: twitterProfile.name + " on " + platform,
     external_url: "",
     image: twitterProfile.image,
-    marketplace: THEME,
+    marketplace: "1ton",
     attributes,
     // Rich contents
     bio,
@@ -211,26 +145,6 @@ export async function generateMetadataWithProfiles(
         assured_incomes: randomIncomes(),
       });
       break;
-    case "cyberconnect":
-      attributes.push({
-        trait_type: "Platform",
-        value: "CyberConnect",
-      });
-      incomes.push({
-        platform: platformType.CYBERCONNECT,
-        past_incomes: randomIncomes(),
-        estimated_incomes: randomIncomes(),
-        assured_incomes: randomIncomes(),
-      });
-      break;
-    case "lens":
-      incomes.push({
-        platform: platformType.LENS,
-        past_incomes: randomIncomes(),
-        estimated_incomes: randomIncomes(),
-        assured_incomes: randomIncomes(),
-      });
-      break;
     default:
       throw Error(`Unsupported platform: ${profiles[0].type}. Only BintanGO, CyberConnect and Lens work.`);
   }
@@ -256,7 +170,7 @@ export async function generateMetadataWithProfiles(
     description: profiles[0].name + " on " + platform,
     external_url: "",
     image: profiles[0].image,
-    marketplace: THEME,
+    marketplace: "1ton",
     attributes,
     // Rich contents
     bio,

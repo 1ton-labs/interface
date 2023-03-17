@@ -31,7 +31,6 @@ const Navbar: FC<NavbarProps> = ({ logo, items }) => {
           <img
             src={logo.image}
             alt={logo.description}
-            // className="w-[150px] h-[30px] lg:w-[200px] lg:h-[40px]"
             className={`${logo.size ? logo.size : (
               `w-[150px] lg:w-[200px]`
             )}`}
@@ -47,7 +46,6 @@ const Navbar: FC<NavbarProps> = ({ logo, items }) => {
           ))}
         </div>
       </div>
-
       <WalletConnectButton />
     </div>
   )

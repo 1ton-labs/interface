@@ -16,7 +16,7 @@ export const AssetContent: FC<AssetProps> = ({
   loan,
 }) => {
   const { connected, address, prettyAddress } = useWeb3();
-  const [customDate, setCustomDate] = useState(new Date());
+  const [customDate] = useState(new Date());
   const router = useRouter();
   const baseUrl = router.asPath.split("/")[1]
 
@@ -35,8 +35,8 @@ export const AssetContent: FC<AssetProps> = ({
     }
   }
 
-  const displayUser = connected ? prettyAddress : "Guest"; // TODO: prettyAddress
-  const displayOwner = item.owner_address ? shortStr(item.owner_address) : ""; // TODO: prettyAddress
+  const displayUser = connected ? prettyAddress : "Guest";
+  const displayOwner = item.owner_address ? shortStr(item.owner_address) : "";
 
   return (
     <div className="flex flex-col max-w-6xl">
@@ -109,7 +109,6 @@ export const AssetContent: FC<AssetProps> = ({
                 <LoanPanel
                   loan={loan}
                   tokenId={getTokenId(item)}
-                  isOwner={isOwner}
                   isBorrower={isBorrower}
                   isLender={isLender}
                   customDate={customDate}
@@ -120,7 +119,6 @@ export const AssetContent: FC<AssetProps> = ({
         </div>
       </div>
       <div className="mb-16"></div>
-      {/* <DebugConsole item={item} loan={loan} customDate={customDate} setCustomDate={setCustomDate} /> */}
     </div>
   );
 };

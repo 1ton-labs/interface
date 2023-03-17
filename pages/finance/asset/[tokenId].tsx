@@ -1,5 +1,5 @@
 import { GetServerSideProps, NextPage } from "next";
-import { AssetProps, getAssetProps, getMockAssetProps } from "@/core/asset";
+import { AssetProps, getAssetProps } from "@/core/asset";
 import { AssetContent } from "@/components/Asset";
 import contents from "@/contents";
 import Layout from "@/components/Layout";
@@ -12,10 +12,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (tokenId === undefined) {
     throw Error("Empty tokenId");
   }
-  /* Real data */
   const props = await getAssetProps(tokenId);
-  /* Mock data */
-  // const props = getMockAssetProps();
   return { props };
 };
 

@@ -1,11 +1,10 @@
 import { FC, useEffect, useState } from "react";
-import { NFT_COLLECTION_ADDRESS, SCAN_URL } from "@/constants";
-import NFTCards from "./NFTCards";
-import { Metadata, NftState } from "@/types";
 import firebase from "firebase";
+import { NFT_COLLECTION_ADDRESS, SCAN_URL } from "@/constants";
 import { getActiveLoanKeys, getTokenId } from "@/core/utils";
 import { getNftItems } from "@/core/api";
-// import { Address } from "ton";
+import { Metadata, NftState } from "@/types";
+import NFTCards from "./NFTCards";
 
 const All: FC = () => {
   const [items, setItems] = useState<Metadata[]>([]);
@@ -27,7 +26,6 @@ const All: FC = () => {
         item.state = NftState.NOT_LISTED;
         const tokenId = getTokenId(item);
         if (tokenId) {
-          // const tokenAddress = Address.parse(tokenId).toString();
           if (listedTokenIds.includes(tokenId)) {
             item.state = NftState.LISTED;
           }
